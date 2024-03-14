@@ -25,7 +25,7 @@ jobs:
         rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
         ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << EOF
           sudo chown -R ubuntu:www-data /home/ubuntu/test
-          echo "$DOTENV_CONTENTS" > /home/ubuntu/test/.env 
+          echo "$ENCODED_DOTENV" | base64 -d | sudo tee /home/ubuntu/test/.env > /dev/null 
         EOF
 
     - name: Cleanup SSH key
