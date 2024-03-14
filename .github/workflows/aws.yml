@@ -1,20 +1,27 @@
-name: Deploy
+name: Deploy to EC2
 
-on:
-  push:
-    branches: [ main ]
+on: [push]
 
 jobs:
-  Deploy:
-    name: Deploy to EC2
+  deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-      - uses: actions/checkout@v2 
-      - name: Build & Deploy
-        uses: easingthemes/ssh-deploy@main
-        env:
-            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-            HOSTNAME: ${{secrets.HOST}}
-            USER_NAME: ${{secrets.USER_NAME}}
-      
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Deploy to EC2
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        HOST: ${{ secrets.HOST }}
+        USER: ${{ secrets.USER }}
+      run: |
+        echo "$SSH_PRIVATE_KEY" > private_key
+        chmod 600 private_key
+        ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST << EOF
+          # Commands to execute on your EC2 instance
+          # For example, pulling the latest code and restarting the service
+          cd /path/to/your/project
+          git pull
+          # restart your application/service if needed
+        EOF
