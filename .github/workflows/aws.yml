@@ -12,6 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2 
       - name: Build & Deploy
+        uses: easingthemes/ssh-deploy@main
         env:
             PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
             HOSTNAME: ${{secrets.HOST}}
