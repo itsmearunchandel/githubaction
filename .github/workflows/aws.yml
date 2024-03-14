@@ -1,37 +1,25 @@
-name: Deploy to EC2
+name: Deploy
 
 on:
   push:
-    branches:
-      - main  # Set to your default branch
+    branches: [ main ]
 
 jobs:
-  deploy:
+  Deploy:
+    name: Deploy to EC2
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Copy files to EC2
+      - uses: actions/checkout@v2 
+      - name: Build & Deploy
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.HOST }}
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{secrets.HOST}}
+            USER_NAME: ${{secrets.USER_NAME}}
+      
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r . ubuntu@$HOST:/home/ubuntu/test
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
-      - name: Install dependencies and run application
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          HOST: ${{ secrets.HOST }}
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ec2-user@$HOST << EOF
-            cd /home/ubuntu/test
-            python3 -m venv venv
-            source venv/bin/activate
-           ## pip install -r requirements.txt
-          ##  python3 my_script.py  # Or command to start your application
-          EOF
+              # Now we have got the access of EC2 and we will start the deploy .
+              cd /home/ubuntu/test
