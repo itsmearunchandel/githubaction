@@ -22,7 +22,7 @@ jobs:
         USER: ${{ secrets.USER }}
         DOTENV_CONTENTS: ${{ secrets.DOTENV_CONTENTS }}
       run: |
-        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/path/to/destination
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
         ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << EOF
           sudo chown -R www-data:www-data /home/ubuntu/test
           echo "$DOTENV_CONTENTS" > /home/ubuntu/test/.env
