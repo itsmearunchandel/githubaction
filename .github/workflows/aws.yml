@@ -1,4 +1,4 @@
-name: Copy Code to EC2 and Change Permissions
+name: Deploy to EC2 and Add .env File
 
 on: [push]
 
@@ -16,13 +16,17 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > tmp_ssh/private_key
         chmod 600 tmp_ssh/private_key
 
-    - name: Copy files to EC2 and change permissions
+    - name: Copy files to EC2, change permissions, and add .env file
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
+        DOTENV_CONTENTS: ${{ secrets.DOTENV_CONTENTS }}
       run: |
-        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
-        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST "sudo chown -R ubuntu:www-data /home/ubuntu/test"
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/path/to/destination
+        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << EOF
+          sudo chown -R www-data:www-data /home/ubuntu/test
+          echo "$DOTENV_CONTENTS" > /home/ubuntu/test/.env
+        EOF
 
     - name: Cleanup SSH key
       run: |
