@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Copy Code to EC2
 
 on: [push]
 
@@ -10,12 +10,19 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Deploy to EC2
+    - name: Prepare SSH key
+      run: |
+        mkdir -p tmp_ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > tmp_ssh/private_key
+        chmod 600 tmp_ssh/private_key
+
+    - name: Copy files to EC2
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
-        echo "$SSH_PRIVATE_KEY" > private_key
-        chmod 600 private_key
-        scp -o StrictHostKeyChecking=no -i private_key -r * $USER@$HOST:/home/ubuntu/test
+        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
+
+    - name: Cleanup SSH key
+      run: |
+        rm -rf tmp_ssh
