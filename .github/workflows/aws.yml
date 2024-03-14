@@ -20,12 +20,13 @@ jobs:
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
-        DOTENV_CONTENTS: ${{ secrets.DOTENV_CONTENTS }}
+        ENCODED_DOTENV: ${{ secrets.ENCODED_DOTENV }}
       run: |
         rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
         ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << EOF
-          sudo chown -R www-data:www-data /home/ubuntu/test
-          echo "$DOTENV_CONTENTS" > /home/ubuntu/test/.env
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/test
+          echo "$ENCODED_DOTENV" | base64 -d | sudo tee /home/ubuntu/test/.env > /dev/null
+          sudo chown ubuntu:ubuntu /home/ubuntu/test/.env
         EOF
 
     - name: Cleanup SSH key
