@@ -18,8 +18,7 @@ jobs:
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key
         chmod 600 private_key
-        ssh -v -i private_key -o StrictHostKeyChecking=no $USER@$HOST 'pwd'
- << EOF
+        ssh -v -i private_key -o StrictHostKeyChecking=no $USER@$HOST 'pwd' << EOF
           # Commands to execute on your EC2 instance
           # For example, pulling the latest code and restarting the service
           cd /path/to/your/project
