@@ -21,7 +21,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r . ec2-user@$HOST:/path/to/deploy
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa -r . ubuntu@$HOST:/home/ubuntu/test
 
       - name: Install dependencies and run application
         env:
