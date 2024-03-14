@@ -1,4 +1,4 @@
-name: Copy Code to EC2
+name: Copy Code to EC2 and Change Permissions
 
 on: [push]
 
@@ -16,12 +16,13 @@ jobs:
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > tmp_ssh/private_key
         chmod 600 tmp_ssh/private_key
 
-    - name: Copy files to EC2
+    - name: Copy files to EC2 and change permissions
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
       run: |
         rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
+        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST "sudo chown -R ubuntu:www-data /home/ubuntu/test"
 
     - name: Cleanup SSH key
       run: |
