@@ -1,35 +1,39 @@
-name: Deploy to EC2 and Add .env File
+name: Deploy to EC2 and Set Up .env File from S3
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Prepare SSH key
+    - name: Set up SSH key
       run: |
         mkdir -p tmp_ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > tmp_ssh/private_key
         chmod 600 tmp_ssh/private_key
 
-    - name: Copy files to EC2, change permissions, and add .env file
+    - name: Deploy to EC2 and set up .env file from S3
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
         S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        S3_FILE_PATH: ${{ secrets.S3_FILE_PATH }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1  # Change to your desired AWS region
-        run: |
-            ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << 'EOF'
-            rsync -avz --exclude=tmp_ssh . /home/ubuntu/test &&
-            aws s3 cp s3://$S3_BUCKET_NAME/.env /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
-            EOF
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << 'EOF'
+          rsync -avz --exclude=tmp_ssh . /home/ubuntu/test &&
+          aws s3 cp s3://$S3_BUCKET_NAME/$S3_FILE_PATH /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
+        EOF
 
-    - name: Cleanup SSH key
+    - name: Clean up SSH key
       run: |
         rm -rf tmp_ssh
