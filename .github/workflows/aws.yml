@@ -20,13 +20,15 @@ jobs:
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
-        ENCODED_DOTENV: ${{ secrets.ENCODED_DOTENV }}
-      run: |
-        rsync -avz -e "ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key" --exclude=tmp_ssh . $USER@$HOST:/home/ubuntu/test
-        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << 'EOF'
-        pwd
-        echo "$DOTENV_CONTENTS" | base64 --decode > /home/ubuntu/test/.env
-        EOF
+        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1  # Change to your desired AWS region
+        run: |
+            ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << 'EOF'
+            rsync -avz --exclude=tmp_ssh . /home/ubuntu/test &&
+            aws s3 cp s3://$S3_BUCKET_NAME/.env /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
+            EOF
 
     - name: Cleanup SSH key
       run: |
