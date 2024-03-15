@@ -1,9 +1,9 @@
-name: Deploy to EC2 and Set Up .env File from S3
+name: Deploy to EC2 with Git Pull and Set Up .env File from S3
 
 on:
   push:
     branches:
-      - main
+      - main  # Trigger the workflow on push to the main branch
 
 jobs:
   deploy:
@@ -13,27 +13,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up SSH key
-      run: |
-        mkdir -p tmp_ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > tmp_ssh/private_key
-        chmod 600 tmp_ssh/private_key
-
     - name: Deploy to EC2 and set up .env file from S3
       env:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
+        PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
-        S3_FILE_PATH: ${{ secrets.S3_FILE_PATH }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        ssh -o StrictHostKeyChecking=no -i tmp_ssh/private_key $USER@$HOST << 'EOF'
-          rsync -avz --exclude=tmp_ssh . /home/ubuntu/test &&
-          aws s3 cp s3://$S3_BUCKET_NAME/$S3_FILE_PATH /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
+        echo "$PRIVATE_KEY" > private_key
+        chmod 600 private_key
+        ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST << 'EOF'
+          cd /home/ubuntu/test
+          git pull
+          aws s3 cp s3://$S3_BUCKET_NAME/.env /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
         EOF
-
-    - name: Clean up SSH key
-      run: |
-        rm -rf tmp_ssh
+        ##rm -f private_key
