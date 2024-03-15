@@ -3,7 +3,7 @@ name: Deploy to EC2 with Git Pull and Set Up .env File from S3
 on:
   push:
     branches:
-      - main  # Trigger the workflow on push to the main branch
+      - main  # Trigger the workflow on push to the main 
 
 jobs:
   deploy:
