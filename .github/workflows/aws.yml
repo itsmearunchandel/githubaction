@@ -18,16 +18,16 @@ jobs:
         HOST: ${{ secrets.HOST }}
         USER: ${{ secrets.USER }}
         PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+   ##     S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
     ##    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
     ##    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
+     ##   AWS_DEFAULT_REGION: us-east-1
       run: |
         echo "$PRIVATE_KEY" > private_key
         chmod 600 private_key
         ssh -o StrictHostKeyChecking=no -i private_key $USER@$HOST << 'EOF'
           cd /home/ubuntu/test/githubaction
           git pull
-          aws s3 cp s3://$S3_BUCKET_NAME/.env /home/ubuntu/test/.env --region $AWS_DEFAULT_REGION
+          aws s3 cp s3://crewfare-ai-env/.env . 
         EOF
         ##rm -f private_key
